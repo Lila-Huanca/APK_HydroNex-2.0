@@ -147,22 +147,22 @@ if choice == "Reportes":
 
 # Community Awareness
 if choice == "Conciencia Comunitaria":
-    st.title("Water Awareness")
+    st.title("Conciencia del agua")
 
     st.subheader("Efficient Water Usage Tips")
     st.write("""
-        Water is a vital resource. Here are some recommended practices:
-        - Fix leaks in faucets and pipes.
-        - Use containers for watering plants.
-        - Take short showers.
-        - Collect rainwater for irrigation.
+        El agua es un recurso vital. A continuación, se indican algunas prácticas recomendadas:
+        - Reparar fugas en grifos y tuberías.
+        - Utilizar recipientes para regar las plantas.
+        - Tomar duchas breves.
+        - Recoger agua de lluvia para riego.
     """)
 
-    st.subheader("Education and Resources")
+    st.subheader("Educación y recursos")
     st.write("""
-        - **Water Conservation Workshops**: Participate in our workshops to learn more about conserving water in your home.
-        - **Information Sessions**: Attend our sessions to learn more about the water situation in our community.
+        - **Talleres de conservación de agua**: Participe en nuestros talleres para aprender más sobre cómo conservar el agua en su hogar.
+        - **Sesiones informativas**: Asista a nuestras sesiones para aprender más sobre la situación del agua en nuestra comunidad.
     """)
 
-st.sidebar.markdown("### Contact")
-st.sidebar.write("If you have questions or comments, feel free to contact us.")
+st.sidebar.markdown("### Contacto")
+st.sidebar.write("Si tienes preguntas o comentarios, no dudes en contactarnos..")
