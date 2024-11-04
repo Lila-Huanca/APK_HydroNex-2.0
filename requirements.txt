@@ -1,5 +1,7 @@
-streamlit==1.25.0
-pandas==2.1.1
-matplotlib==3.8.0
-fuzzywuzzy==0.18.0
-python-Levenshtein==0.12.0
+streamlit
+pandas
+matplotlib
+fuzzywuzzy
+python-Levenshtein
+OpenAI
+plotly
