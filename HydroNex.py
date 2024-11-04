@@ -10,7 +10,8 @@ def init_session_state():
         "water_quality": [],
         "water_supply": [],
         "hydronex_status": "en proceso de llenado",  # Estado por defecto
-        "hydronex_condition": "apto"  # Estado por defecto
+        "hydronex_condition": "apto",               # Estado por defecto
+        "hydronex_history": [80, 90, 85, 100]       # Ejemplo de historial de llenado en porcentaje
     }
     for key, default in session_defaults.items():
         if key not in st.session_state:
@@ -97,56 +98,53 @@ if choice == "Monitoreo":
     else:
         st.write("No hay datos disponibles sobre el suministro de agua.")
 
-# Definir estado y condición de ejemplo del dispositivo HydroNex
-st.session_state['hydronex_status'] = "lleno"
-st.session_state['hydronex_condition'] = "apto"
-st.session_state['hydronex_history'] = [80, 90, 85, 100]
-
 # Hydro-Bot
-st.title("Hydro-Bot")
-st.write("¡Hola! Bienvenido a tu chat bot 'Hydro-Bot'. Aquí podrás consultar sobre el estado de tu dispositivo HydroNex.")
+if choice == "Hydro-Bot":
+    st.title("Hydro-Bot")
+    st.write("¡Hola! Bienvenido a tu chat bot 'Hydro-Bot'. Aquí podrás consultar sobre el estado de tu dispositivo HydroNex.")
 
-# Tabla de temas sugeridos
-st.subheader("Temas sugeridos para preguntar:")
-st.markdown("""
-| Tema                         | Ejemplo de pregunta                                  |
-|------------------------------|------------------------------------------------------|
-| Condiciones del dispositivo  | "¿Está el dispositivo en condiciones óptimas?"       |
-| Estado del llenado           | "¿Cuál es el estado actual del llenado?"             |
-| Historial de llenado         | "¿Cuál es el historial de llenado del dispositivo?"  |
-| Cantidad de litros           | "¿Cuántos litros tiene acumulados?"                  |
-""")
+    # Tabla de temas sugeridos
+    st.subheader("Temas sugeridos para preguntar:")
+    st.markdown("""
+    | Tema                         | Ejemplo de pregunta                                  |
+    |------------------------------|------------------------------------------------------|
+    | Condiciones del dispositivo  | "¿Está el dispositivo en condiciones óptimas?"       |
+    | Estado del llenado           | "¿Cuál es el estado actual del llenado?"             |
+    | Historial de llenado         | "¿Cuál es el historial de llenado del dispositivo?"  |
+    | Cantidad de litros           | "¿Cuántos litros tiene acumulados?"                  |
+    """)
 
-# Entrada del usuario para Hydro-Bot
-user_query = st.text_input("¿Qué deseas saber sobre tu HydroNex?", "")
+    # Entrada del usuario para Hydro-Bot
+    user_query = st.text_input("¿Qué deseas saber sobre tu HydroNex?", "")
 
-# Respuesta según la consulta del usuario
-if user_query:
-    # Estado de llenado
-    if "lleno" in user_query.lower():
-        st.write(f"Asistente: Actualmente, el dispositivo se encuentra {st.session_state['hydronex_status']}.")
-    
-    # Condiciones del dispositivo
-    elif "apto" in user_query.lower():
-        if st.session_state["hydronex_condition"] == "apto":
-            st.write("Asistente: El dispositivo se encuentra en condiciones óptimas para su uso.")
+    # Respuesta según la consulta del usuario
+    if user_query:
+        # Estado de llenado
+        if "lleno" in user_query.lower():
+            st.write(f"Asistente: Actualmente, el dispositivo se encuentra {st.session_state['hydronex_status']}.")
+        
+        # Condiciones del dispositivo
+        elif "apto" in user_query.lower():
+            if st.session_state["hydronex_condition"] == "apto":
+                st.write("Asistente: El dispositivo se encuentra en condiciones óptimas para su uso.")
+            else:
+                st.write("Asistente: El dispositivo se encuentra en malas condiciones. Se sugiere reportar este acontecimiento.")
+        
+        # Cantidad de litros
+        elif "cantidad" in user_query.lower() or "litros" in user_query.lower():
+            st.write("Asistente: Actualmente, el dispositivo está en proceso de llenado y la cantidad de litros acumulados está en monitoreo.")
+        
+        # Historial de llenado
+        elif "historial" in user_query.lower():
+            st.write("Asistente: El historial de llenado del dispositivo es el siguiente:")
+            st.write(st.session_state["hydronex_history"])
+        
+        # Respuesta predeterminada
         else:
-            st.write("Asistente: El dispositivo se encuentra en malas condiciones. Se sugiere reportar este acontecimiento.")
-    
-    # Cantidad de litros
-    elif "cantidad" in user_query.lower() or "litros" in user_query.lower():
-        st.write("Asistente: Actualmente, el dispositivo está en proceso de llenado y la cantidad de litros acumulados está en monitoreo.")
-    
-    # Historial de llenado
-    elif "historial" in user_query.lower():
-        st.write("Asistente: El historial de llenado del dispositivo es el siguiente:")
-        st.write(st.session_state["hydronex_history"])
-    
-    # Respuesta predeterminada
-    else:
-        st.write("Asistente: Lo siento, no puedo ayudarte con esa consulta. Intenta preguntar sobre las condiciones del dispositivo, el estado del llenado o el historial de llenado.")
+            st.write("Asistente: Lo siento, no puedo ayudarte con esa consulta. Intenta preguntar sobre las condiciones del dispositivo, el estado del llenado o el historial de llenado.")
 
-elif choice == "Reportes":
+# Reportes
+if choice == "Reportes":
     st.title("Reportes de Problemas de Agua")
     
     report_type = st.selectbox("Tipo de reporte", ["Contaminación", "Falta de suministro", "Otro"])
@@ -164,11 +162,12 @@ elif choice == "Reportes":
         for report in st.session_state["reports"]:
             st.write(f"- {report[0]}: {report[1]}")
 
-elif choice == "Conciencia Comunitaria":
+# Conciencia Comunitaria
+if choice == "Conciencia Comunitaria":
     st.title("Conciencia sobre el Agua")
     
     st.subheader("Información sobre el uso eficiente del agua")
-    st.write("""\
+    st.write("""
         El agua es un recurso vital. Aquí hay algunas prácticas recomendadas:
         - Repara fugas en grifos y tuberías.
         - Usa recipientes para regar las plantas.
@@ -177,7 +176,7 @@ elif choice == "Conciencia Comunitaria":
     """)
     
     st.subheader("Educación y Recursos")
-    st.write("""\
+    st.write("""
         - **Talleres sobre conservación del agua**: Participa en nuestros talleres para aprender más sobre cómo conservar el agua en tu hogar.
         - **Charlas informativas**: Asiste a nuestras charlas para conocer más sobre la situación del agua en nuestra comunidad.
     """)
