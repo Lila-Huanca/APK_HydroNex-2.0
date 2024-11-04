@@ -10,8 +10,8 @@ def init_session_state():
         "water_quality": [],
         "water_supply": [],
         "hydronex_status": "en proceso de llenado",  # Default status
-        "hydronex_condition": "apto",               # Default condition
-        "hydronex_history": [80, 90, 85, 100]       # Sample history of filling status
+        "hydronex_condition": "apto",                # Default condition
+        "hydronex_history": [80, 90, 85, 100]        # Sample history of filling status
     }
     for key, default in session_defaults.items():
         if key not in st.session_state:
@@ -25,6 +25,21 @@ def load_from_url(url):
         st.error(f"Error loading data from {url}: {e}")
         return pd.DataFrame()
 
+# Sample data for testing
+def load_sample_data():
+    water_quality_data = pd.DataFrame({
+        "Fecha": ["2024-11-01", "2024-11-02", "2024-11-03"],
+        "pH": [7.2, 7.1, 7.3],
+        "Contaminantes (mg/L)": [10, 15, 12]
+    })
+    
+    water_supply_data = pd.DataFrame({
+        "Fecha": ["2024-11-01", "2024-11-02", "2024-11-03"],
+        "Litros Distribuidos": [1200, 1100, 1300],
+        "Zonas Abastecidas": ["Zona 1, Zona 2", "Zona 1", "Zona 2, Zona 3"]
+    })
+    return water_quality_data, water_supply_data
+
 # Page configuration
 st.set_page_config(page_title="HydroNex", page_icon="💧")
 init_session_state()
@@ -33,41 +48,25 @@ init_session_state()
 menu_options = ["Hydro-Bot", "Monitoreo", "Reportes", "Conciencia Comunitaria"]
 choice = st.sidebar.selectbox("Menu", menu_options)
 
-# Load sample data (replace URLs with actual data URLs)
-water_quality_url = "https://example.com/water_quality.csv"
-water_supply_url = "https://example.com/water_supply.csv"
-
-water_quality_data = load_from_url(water_quality_url)
-water_supply_data = load_from_url(water_supply_url)
-
-# Sample data (for demonstration purposes; replace with real data)
-water_quality_data = pd.DataFrame({
-    "Fecha": ["2024-11-01", "2024-11-02", "2024-11-03"],
-    "pH": [7.2, 7.1, 7.3],
-    "Contaminantes (mg/L)": [10, 15, 12]
-})
-
-water_supply_data = pd.DataFrame({
-    "Fecha": ["2024-11-01", "2024-11-02", "2024-11-03"],
-    "Litros Distribuidos": [1200, 1100, 1300],
-    "Zonas Abastecidas": ["Zona 1, Zona 2", "Zona 1", "Zona 2, Zona 3"]
-})
+# Load data (sample data for demonstration)
+water_quality_data, water_supply_data = load_sample_data()
 
 # Water Supply Section
-st.subheader("Water Supply")
-if not water_supply_data.empty:
-    st.write("Current water supply data:")
-    st.dataframe(water_supply_data)
-    
-    # Plotting Distributed Water
-    plt.figure(figsize=(10, 5))
-    plt.plot(water_supply_data["Fecha"], water_supply_data["Litros Distribuidos"], marker='o', color='green')
-    plt.title("Water Distribution in Liters")
-    plt.xlabel("Fecha")
-    plt.ylabel("Litros Distribuidos")
-    st.pyplot(plt)
-else:
-    st.write("No data available on water supply.")
+if choice == "Monitoreo":
+    st.subheader("Water Supply")
+    if not water_supply_data.empty:
+        st.write("Current water supply data:")
+        st.dataframe(water_supply_data)
+        
+        # Plotting Distributed Water
+        plt.figure(figsize=(10, 5))
+        plt.plot(water_supply_data["Fecha"], water_supply_data["Litros Distribuidos"], marker='o', color='green')
+        plt.title("Water Distribution in Liters")
+        plt.xlabel("Fecha")
+        plt.ylabel("Litros Distribuidos")
+        st.pyplot(plt)
+    else:
+        st.write("No data available on water supply.")
 
 # Hydro-Bot
 if choice == "Hydro-Bot":
@@ -76,7 +75,7 @@ if choice == "Hydro-Bot":
 
     # Suggested topics
     st.subheader("Suggested Topics to Ask:")
-    st.markdown("""
+    st.markdown("""\
     | Topic                        | Example Question                                |
     |------------------------------|-------------------------------------------------|
     | Device Condition             | "Is the device in optimal condition?"          |
@@ -88,13 +87,15 @@ if choice == "Hydro-Bot":
     user_query = st.text_input("What would you like to know about your HydroNex?", "")
 
     if user_query:
-        if "filling" in user_query.lower():
+        query = user_query.lower()
+        if "filling" in query:
             st.write(f"Assistant: The device is currently {st.session_state['hydronex_status']}.")
-        elif "condition" in user_query.lower():
-            st.write("Assistant: The device is in optimal condition." if st.session_state["hydronex_condition"] == "apto" else "The device is in poor condition; consider reporting.")
-        elif "liters" in user_query.lower():
+        elif "condition" in query:
+            condition_response = "optimal condition." if st.session_state["hydronex_condition"] == "apto" else "in poor condition; consider reporting."
+            st.write(f"Assistant: The device is in {condition_response}")
+        elif "liters" in query:
             st.write("Assistant: The device is being monitored, and the accumulated liters are under observation.")
-        elif "history" in user_query.lower():
+        elif "history" in query:
             st.write("Assistant: The filling history is as follows:")
             st.write(st.session_state["hydronex_history"])
         else:
@@ -150,7 +151,7 @@ if choice == "Conciencia Comunitaria":
     st.title("Water Awareness")
 
     st.subheader("Efficient Water Usage Tips")
-    st.write("""
+    st.write("""\
         Water is a vital resource. Here are some recommended practices:
         - Fix leaks in faucets and pipes.
         - Use containers for watering plants.
@@ -159,10 +160,11 @@ if choice == "Conciencia Comunitaria":
     """)
 
     st.subheader("Education and Resources")
-    st.write("""
+    st.write("""\
         - **Water Conservation Workshops**: Participate in our workshops to learn more about conserving water in your home.
         - **Information Sessions**: Attend our sessions to learn more about the water situation in our community.
     """)
 
+# Contact Information
 st.sidebar.markdown("### Contact")
 st.sidebar.write("If you have questions or comments, feel free to contact us.")
