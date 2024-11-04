@@ -1,5 +1,4 @@
-pandas
 streamlit
-OpenAI
+pandas
+matplotlib
 fuzzywuzzy
-plotly
