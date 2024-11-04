@@ -6,12 +6,12 @@ from fuzzywuzzy import fuzz, process
 # Initialize session state
 def init_session_state():
     session_defaults = {
-        "reports": [],
-        "water_quality": [],
-        "water_supply": [],
-        "hydronex_status": "en proceso de llenado",  # Default status
-        "hydronex_condition": "apto",               # Default condition
-        "hydronex_history": [80, 90, 85, 100]       # Sample history of filling status
+        "informes": [],
+        "calidad del agua": [],
+        "suministro de agua": [],
+        "estado de hydronex": "en proceso de llenado",  # Default status
+        "condición de hydronex": "apto",               # Default condition
+        "historial de Hydronex": [80, 90, 85, 100]       # Sample history of filling status
     }
     for key, default in session_defaults.items():
         if key not in st.session_state:
@@ -72,17 +72,17 @@ else:
 # Hydro-Bot
 if choice == "Hydro-Bot":
     st.title("Hydro-Bot")
-    st.write("Hello! Welcome to your chatbot 'Hydro-Bot'. You can check the status of your HydroNex device here.")
+    st.write("Hola! Te damos la bienvenida a tu chatbot 'Hydro-Bot'. Puedes consultar el estado de tu dispositivo HydroNex aquí.")
 
     # Suggested topics
-    st.subheader("Suggested Topics to Ask:")
+    st.subheader("Temas sugeridos para preguntar:")
     st.markdown("""
-    | Topic                        | Example Question                                |
+    | Tema                       | Ejemplo de pregunta                               |
     |------------------------------|-------------------------------------------------|
-    | Device Condition             | "Is the device in optimal condition?"          |
-    | Filling Status               | "What is the current filling status?"          |
-    | Filling History              | "What is the filling history of the device?"   |
-    | Accumulated Liters           | "How many liters are accumulated?"             |
+    | Estado del dispositivo             | "¿El dispositivo está en óptimas condiciones?"          |
+    | Estado de llenado               | "¿Cuál es el estado de llenado actual?"          |
+    | Historial de llenado              | "¿Cuál es el historial de llenado del dispositivo?"   |
+    | Litros acumulados           | "¿Cuántos litros hay acumulados? "             |
     """)
 
     user_query = st.text_input("What would you like to know about your HydroNex?", "")
