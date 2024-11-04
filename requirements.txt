@@ -1,5 +1,5 @@
-streamlit==1.25.0
-pandas==2.1.1
-matplotlib==3.8.0
-fuzzywuzzy==0.18.0
-python-Levenshtein==0.12.0
+pip install streamlit
+pip install pandas
+pip install matplotlib
+pip install fuzzywuzzy
+pip install python-Levenshtein
