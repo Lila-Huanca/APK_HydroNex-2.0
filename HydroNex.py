@@ -53,21 +53,21 @@ water_supply_data = pd.DataFrame({
     "Zonas Abastecidas": ["Zona 1, Zona 2", "Zona 1", "Zona 2, Zona 3"]
 })
 
-    # Water Supply Section
-    st.subheader("Water Supply")
-    if not water_supply_data.empty:
-        st.write("Current water supply data:")
-        st.dataframe(water_supply_data)
-        
-        # Plotting Distributed Water
-        plt.figure(figsize=(10, 5))
-        plt.plot(water_supply_data["Fecha"], water_supply_data["Litros Distribuidos"], marker='o', color='green')
-        plt.title("Water Distribution in Liters")
-        plt.xlabel("Fecha")
-        plt.ylabel("Litros Distribuidos")
-        st.pyplot(plt)
-    else:
-        st.write("No data available on water supply.")
+# Water Supply Section
+st.subheader("Water Supply")
+if not water_supply_data.empty:
+    st.write("Current water supply data:")
+    st.dataframe(water_supply_data)
+    
+    # Plotting Distributed Water
+    plt.figure(figsize=(10, 5))
+    plt.plot(water_supply_data["Fecha"], water_supply_data["Litros Distribuidos"], marker='o', color='green')
+    plt.title("Water Distribution in Liters")
+    plt.xlabel("Fecha")
+    plt.ylabel("Litros Distribuidos")
+    st.pyplot(plt)
+else:
+    st.write("No data available on water supply.")
 
 # Hydro-Bot
 if choice == "Hydro-Bot":
