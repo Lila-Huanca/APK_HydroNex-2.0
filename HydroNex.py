@@ -30,7 +30,7 @@ st.set_page_config(page_title="HydroNex", page_icon="💧")
 init_session_state()
 
 # Sidebar menu
-menu_options = ["Monitoreo", "Hydro-Bot", "Reportes", "Conciencia Comunitaria"]
+menu_options = ["Hydro-Bot", "Monitoreo", "Reportes", "Conciencia Comunitaria"]
 choice = st.sidebar.selectbox("Menu", menu_options)
 
 # Load sample data (replace URLs with actual data URLs)
@@ -52,33 +52,6 @@ water_supply_data = pd.DataFrame({
     "Litros Distribuidos": [1200, 1100, 1300],
     "Zonas Abastecidas": ["Zona 1, Zona 2", "Zona 1", "Zona 2, Zona 3"]
 })
-
-# Monitoring page
-if choice == "Monitoreo":
-    st.title("Water Monitoring in María del Triunfo")
-
-    # Water Quality Section
-    st.subheader("Water Quality")
-    if not water_quality_data.empty:
-        st.write("Current water quality data:")
-        st.dataframe(water_quality_data)
-        
-        # Plotting pH and Contaminants
-        fig, ax1 = plt.subplots()
-        ax1.set_xlabel("Fecha")
-        ax1.set_ylabel("pH", color="tab:blue")
-        ax1.plot(water_quality_data["Fecha"], water_quality_data["pH"], color="tab:blue", label="pH")
-        ax1.tick_params(axis="y", labelcolor="tab:blue")
-
-        ax2 = ax1.twinx()
-        ax2.set_ylabel("Contaminantes (mg/L)", color="tab:red")
-        ax2.plot(water_quality_data["Fecha"], water_quality_data["Contaminantes (mg/L)"], color="tab:red", label="Contaminantes")
-        ax2.tick_params(axis="y", labelcolor="tab:red")
-
-        fig.tight_layout()
-        st.pyplot(fig)
-    else:
-        st.write("No data available on water quality.")
 
     # Water Supply Section
     st.subheader("Water Supply")
@@ -126,6 +99,33 @@ if choice == "Hydro-Bot":
             st.write(st.session_state["hydronex_history"])
         else:
             st.write("Assistant: Sorry, I can't help with that question. Try asking about the device's condition, filling status, or filling history.")
+
+# Monitoring page
+if choice == "Monitoreo":
+    st.title("Water Monitoring in María del Triunfo")
+
+    # Water Quality Section
+    st.subheader("Water Quality")
+    if not water_quality_data.empty:
+        st.write("Current water quality data:")
+        st.dataframe(water_quality_data)
+        
+        # Plotting pH and Contaminants
+        fig, ax1 = plt.subplots()
+        ax1.set_xlabel("Fecha")
+        ax1.set_ylabel("pH", color="tab:blue")
+        ax1.plot(water_quality_data["Fecha"], water_quality_data["pH"], color="tab:blue", label="pH")
+        ax1.tick_params(axis="y", labelcolor="tab:blue")
+
+        ax2 = ax1.twinx()
+        ax2.set_ylabel("Contaminantes (mg/L)", color="tab:red")
+        ax2.plot(water_quality_data["Fecha"], water_quality_data["Contaminantes (mg/L)"], color="tab:red", label="Contaminantes")
+        ax2.tick_params(axis="y", labelcolor="tab:red")
+
+        fig.tight_layout()
+        st.pyplot(fig)
+    else:
+        st.write("No data available on water quality.")
 
 # Reports
 if choice == "Reportes":
