@@ -1,7 +1,6 @@
 import pandas as pd
 import streamlit as st
 import matplotlib.pyplot as plt
-from fuzzywuzzy import fuzz, process
 
 # Initialize session state
 def init_session_state():
@@ -11,18 +10,19 @@ def init_session_state():
         "suministro de agua": [],
         "estado de hydronex": "en proceso de llenado",  # Default status
         "condición de hydronex": "apto",               # Default condition
-        "historial de Hydronex": [80, 90, 85, 100]       # Sample history of filling status
+        "historial de Hydronex": [80, 90, 85, 100]     # Sample history of filling status
     }
     for key, default in session_defaults.items():
         if key not in st.session_state:
             st.session_state[key] = default
 
-# Load data from URL
-def load_from_url(url):
+# Load data from URL with fallback
+def load_from_url(url, fallback_data=None):
     try:
         return pd.read_csv(url)
     except Exception as e:
-        st.error(f"Error loading data from {url}: {e}")
+        if fallback_data is not None:
+            return fallback_data
         return pd.DataFrame()
 
 # Page configuration
@@ -33,75 +33,29 @@ init_session_state()
 menu_options = ["Hydro-Bot", "Monitoreo", "Reportes", "Conciencia Comunitaria"]
 choice = st.sidebar.selectbox("Menu", menu_options)
 
-# Load sample data (replace URLs with actual data URLs)
-water_quality_url = "https://example.com/water_quality.csv"
-water_supply_url = "https://example.com/water_supply.csv"
-
-water_quality_data = load_from_url(water_quality_url)
-water_supply_data = load_from_url(water_supply_url)
-
-# Sample data (for demonstration purposes; replace with real data)
-water_quality_data = pd.DataFrame({
+# Fallback data for demo purposes
+fallback_water_quality = pd.DataFrame({
     "Fecha": ["2024-11-01", "2024-11-02", "2024-11-03"],
     "pH": [7.2, 7.1, 7.3],
     "Contaminantes (mg/L)": [10, 15, 12]
 })
 
-water_supply_data = pd.DataFrame({
+fallback_water_supply = pd.DataFrame({
     "Fecha": ["2024-11-01", "2024-11-02", "2024-11-03"],
     "Litros Distribuidos": [1200, 1100, 1300],
     "Zonas Abastecidas": ["Zona 1, Zona 2", "Zona 1", "Zona 2, Zona 3"]
 })
 
-# Water Supply Section
-st.subheader("Water Supply")
-if not water_supply_data.empty:
-    st.write("Current water supply data:")
-    st.dataframe(water_supply_data)
-    
-    # Plotting Distributed Water
-    plt.figure(figsize=(10, 5))
-    plt.plot(water_supply_data["Fecha"], water_supply_data["Litros Distribuidos"], marker='o', color='green')
-    plt.title("Water Distribution in Liters")
-    plt.xlabel("Fecha")
-    plt.ylabel("Litros Distribuidos")
-    st.pyplot(plt)
-else:
-    st.write("No data available on water supply.")
-
-# Hydro-Bot
-if choice == "Hydro-Bot":
-    st.title("Hydro-Bot")
-    st.write("Hola! Te damos la bienvenida a tu chatbot 'Hydro-Bot'. Puedes consultar el estado de tu dispositivo HydroNex aquí.")
-
-    # Suggested topics
-    st.subheader("Temas sugeridos para preguntar:")
-    st.markdown("""
-    | Tema                       | Ejemplo de pregunta                               |
-    |------------------------------|-------------------------------------------------|
-    | Estado del dispositivo             | "¿El dispositivo está en óptimas condiciones?"          |
-    | Estado de llenado               | "¿Cuál es el estado de llenado actual?"          |
-    | Historial de llenado              | "¿Cuál es el historial de llenado del dispositivo?"   |
-    | Litros acumulados           | "¿Cuántos litros hay acumulados? "             |
-    """)
-
-    user_query = st.text_input("What would you like to know about your HydroNex?", "")
-
-    if user_query:
-        if "filling" in user_query.lower():
-            st.write(f"Assistant: The device is currently {st.session_state['hydronex_status']}.")
-        elif "condition" in user_query.lower():
-            st.write("Assistant: The device is in optimal condition." if st.session_state["hydronex_condition"] == "apto" else "The device is in poor condition; consider reporting.")
-        elif "liters" in user_query.lower():
-            st.write("Assistant: The device is being monitored, and the accumulated liters are under observation.")
-        elif "history" in user_query.lower():
-            st.write("Assistant: The filling history is as follows:")
-            st.write(st.session_state["hydronex_history"])
-        else:
-            st.write("Assistant: Sorry, I can't help with that question. Try asking about the device's condition, filling status, or filling history.")
-
-# Monitoring page
+# Load data only when needed
 if choice == "Monitoreo":
+    # Load water quality data
+    water_quality_url = "https://example.com/water_quality.csv"
+    water_quality_data = load_from_url(water_quality_url, fallback_water_quality)
+
+    # Load water supply data
+    water_supply_url = "https://example.com/water_supply.csv"
+    water_supply_data = load_from_url(water_supply_url, fallback_water_supply)
+
     st.title("Water Monitoring in María del Triunfo")
 
     # Water Quality Section
@@ -127,7 +81,27 @@ if choice == "Monitoreo":
     else:
         st.write("No data available on water quality.")
 
-# Reports
+    # Water Supply Section
+    st.subheader("Water Supply")
+    if not water_supply_data.empty:
+        st.write("Current water supply data:")
+        st.dataframe(water_supply_data)
+        
+        # Plotting Distributed Water
+        plt.figure(figsize=(10, 5))
+        plt.plot(water_supply_data["Fecha"], water_supply_data["Litros Distribuidos"], marker='o', color='green')
+        plt.title("Water Distribution in Liters")
+        plt.xlabel("Fecha")
+        plt.ylabel("Litros Distribuidos")
+        st.pyplot(plt)
+    else:
+        st.write("No data available on water supply.")
+
+# Other menu options
+if choice == "Hydro-Bot":
+    st.title("Hydro-Bot")
+    st.write("Hola! Te damos la bienvenida a tu chatbot 'Hydro-Bot'. Puedes consultar el estado de tu dispositivo HydroNex aquí.")
+
 if choice == "Reportes":
     st.title("Water Issue Reports")
     report_type = st.selectbox("Type of report", ["Contamination", "Lack of supply", "Other"])
@@ -135,34 +109,16 @@ if choice == "Reportes":
     
     if st.button("Submit Report"):
         if description:
-            st.session_state["reports"].append((report_type, description))
+            st.session_state["informes"].append((report_type, description))
             st.success("Your report has been submitted.")
         else:
             st.error("Please provide a description of the problem.")
 
-    if st.session_state["reports"]:
+    if st.session_state["informes"]:
         st.subheader("Submitted Reports")
-        for report in st.session_state["reports"]:
+        for report in st.session_state["informes"]:
             st.write(f"- {report[0]}: {report[1]}")
 
-# Community Awareness
 if choice == "Conciencia Comunitaria":
     st.title("Conciencia del agua")
-
-    st.subheader("Efficient Water Usage Tips")
-    st.write("""
-        El agua es un recurso vital. A continuación, se indican algunas prácticas recomendadas:
-        - Reparar fugas en grifos y tuberías.
-        - Utilizar recipientes para regar las plantas.
-        - Tomar duchas breves.
-        - Recoger agua de lluvia para riego.
-    """)
-
-    st.subheader("Educación y recursos")
-    st.write("""
-        - **Talleres de conservación de agua**: Participe en nuestros talleres para aprender más sobre cómo conservar el agua en su hogar.
-        - **Sesiones informativas**: Asista a nuestras sesiones para aprender más sobre la situación del agua en nuestra comunidad.
-    """)
-
-st.sidebar.markdown("### Contacto")
-st.sidebar.write("Si tienes preguntas o comentarios, no dudes en contactarnos..")
+    st.write("Promoviendo el uso eficiente del agua en María del Triunfo.")
