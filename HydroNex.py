@@ -14,7 +14,7 @@ VARIABLES = {
 @st.cache_data(ttl=300)
 def fetch_and_calibrate(variable_name, variable_id, token, slope, intercept):
     """Obtiene y calibra datos de una variable."""
-    url = f"https://industrial.api.ubidots.com/api/v1.6/variables/{variable_id}/values"
+    url = f"https://stem.ubidots.com/app/dashboards/6668d2444d59830886a44331"
     headers = {"X-Auth-Token": token}
     try:
         response = requests.get(url, headers=headers)
