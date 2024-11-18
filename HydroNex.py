@@ -11,7 +11,8 @@ def init_session_state():
         "suministro de agua": [],
         "estado de hydronex": "en proceso de llenado",  # Estado predeterminado
         "condición de hydronex": "apto",              # Condición predeterminada
-        "historial de Hydronex": [80, 90, 85, 100]    # Historial del estado de llenado
+        "historial de Hydronex": [80, 90, 85, 100],   # Historial del estado de llenado
+        "litros acumulados": 0,                       # Litros acumulados iniciales
     }
     for key, default in session_defaults.items():
         if key not in st.session_state:
@@ -61,12 +62,22 @@ if choice == "Hydro-Bot":
     if user_query:
         if "llenado" in user_query.lower():
             st.write(f"Asistente: El dispositivo actualmente está en {st.session_state['estado de hydronex']}.")
+            # Simular cambio en el estado de llenado
+            estados_llenado = ["en proceso de llenado", "a la mitad de la capacidad", "completamente lleno"]
+            estado_actual = estados_llenado.index(st.session_state["estado de hydronex"])
+            st.session_state["estado de hydronex"] = estados_llenado[(estado_actual + 1) % len(estados_llenado)]
         elif "condición" in user_query.lower():
             condicion = "óptimas" if st.session_state["condición de hydronex"] == "apto" else "malas"
             st.write(f"Asistente: El dispositivo está en condiciones {condicion}.")
         elif "historial" in user_query.lower():
             st.write("Asistente: El historial de llenado es el siguiente:")
             st.write(st.session_state["historial de Hydronex"])
+        elif "litros acumulados" in user_query.lower():
+            if st.session_state["litros acumulados"] == 0:
+                st.write("Asistente: Actualmente no tenemos litros acumulados. Por favor, espera un momento y vuelve a preguntar.")
+                st.session_state["litros acumulados"] = 150  # Simular acumulación
+            else:
+                st.write(f"Asistente: El dispositivo tiene {st.session_state['litros acumulados']} litros acumulados.")
         else:
             st.write("Asistente: Lo siento, no puedo responder esa pregunta. Intente preguntar sobre el estado, la condición o el historial del dispositivo.")
 
