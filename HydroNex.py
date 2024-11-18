@@ -1,84 +1,147 @@
-import requests
 import pandas as pd
 import streamlit as st
 import matplotlib.pyplot as plt
+from fuzzywuzzy import fuzz, process  # Biblioteca para coincidencia difusa de texto
 
-# Configuración inicial
-UBIDOTS_TOKEN = "BBUS-2uhNhBDqzsn7DaMmvLAHb18bNt8yFe"
-VARIABLES = {
-    "pH": "67375fe260cea2000b34d149",
-    "Turbidez": "6737603ddea6c6000c3367c9",
-    "Conductividad": "6737603276021b000b240924"
-}
+# Inicializar estado de sesión
+def init_session_state():
+    session_defaults = {
+        "informes": [],
+        "calidad del agua": [],
+        "suministro de agua": [],
+        "estado de hydronex": "en proceso de llenado",  # Estado predeterminado
+        "condición de hydronex": "apto",              # Condición predeterminada
+        "historial de Hydronex": [80, 90, 85, 100]    # Historial del estado de llenado
+    }
+    for key, default in session_defaults.items():
+        if key not in st.session_state:
+            st.session_state[key] = default
 
-@st.cache_data(ttl=300)
-def fetch_and_calibrate(variable_name, variable_id, token, slope, intercept):
-    """Obtiene y calibra datos de una variable."""
-    url = f"http://industrial.api.ubidots.com/api/v1.6/devices"
-    headers = {"X-Auth-Token": token}
+# Cargar datos desde una URL con manejo de errores
+def load_from_url(url):
     try:
-        response = requests.get(url, headers=headers)
-        response.raise_for_status()
-        data = response.json()["results"]
-        df = pd.DataFrame([{
-            "Fecha": pd.to_datetime(item["timestamp"], unit='ms'),
-            "Valor": item["value"]
-        } for item in data])
-        df["Calibrado"] = df["Valor"] * slope + intercept
-        return df
+        return pd.read_csv(url)
     except Exception as e:
-        st.error(f"Error al obtener datos de {variable_name}: {e}")
+        st.error(f"Error al cargar datos desde {url}: {e}")
         return pd.DataFrame()
 
-# Configuración de la aplicación
-st.set_page_config(page_title="Monitoreo HydroNex", page_icon="💧", layout="wide")
-st.title("📊 Monitoreo y Calibración de Sensores - HydroNex")
+# Configuración de la página
+st.set_page_config(page_title="HydroNex", page_icon="💧")
+init_session_state()
 
-# Ajustes de calibración
-with st.sidebar:
-    st.header("Ajustes de Calibración")
-    st.write("Configura la pendiente y el offset para cada sensor:")
-    
-    calibration_params = {
-        "pH": {
-            "slope": st.number_input("Pendiente (pH)", 0.0, 5.0, 1.02, 0.01),
-            "intercept": st.number_input("Offset (pH)", -5.0, 5.0, -0.05, 0.01)
-        },
-        "Turbidez": {
-            "slope": st.number_input("Pendiente (Turbidez)", 0.0, 5.0, 0.98, 0.01),
-            "intercept": st.number_input("Offset (Turbidez)", -5.0, 5.0, 1.2, 0.01)
-        },
-        "Conductividad": {
-            "slope": st.number_input("Pendiente (Conductividad)", 0.0, 5.0, 1.05, 0.01),
-            "intercept": st.number_input("Offset (Conductividad)", -5.0, 5.0, -0.3, 0.01)
-        }
-    }
+# Menú lateral
+menu_options = ["Hydro-Bot", "Monitoreo", "Reportes", "Conciencia Comunitaria"]
+choice = st.sidebar.selectbox("Menú", menu_options)
 
-# Cargar y calibrar datos
-st.spinner("Cargando y calibrando datos desde Ubidots...")
-sensor_data = {}
-for sensor, ids in VARIABLES.items():
-    params = calibration_params[sensor]
-    sensor_data[sensor] = fetch_and_calibrate(sensor, ids, UBIDOTS_TOKEN, params["slope"], params["intercept"])
+# Datos de muestra (puedes reemplazar con URLs reales)
+water_quality_data = pd.DataFrame({
+    "Fecha": ["2024-11-01", "2024-11-02", "2024-11-03"],
+    "pH": [7.2, 7.1, 7.3],
+    "Contaminantes (mg/L)": [10, 15, 12]
+})
 
-# Verificar datos cargados
-if any(df.empty for df in sensor_data.values()):
-    st.error("No se pudieron cargar los datos de todos los sensores. Verifica las configuraciones.")
-else:
-    st.success("✅ Datos cargados y calibrados exitosamente.")
+water_supply_data = pd.DataFrame({
+    "Fecha": ["2024-11-01", "2024-11-02", "2024-11-03"],
+    "Litros Distribuidos": [1200, 1100, 1300],
+    "Zonas Abastecidas": ["Zona 1, Zona 2", "Zona 1", "Zona 2, Zona 3"]
+})
 
-    # Visualización de datos
-    st.subheader("📈 Visualización de Sensores")
-    for sensor, df in sensor_data.items():
-        st.write(f"### {sensor}")
-        if not df.empty:
-            st.line_chart(df.set_index("Fecha")["Calibrado"])
+# Hydro-Bot
+if choice == "Hydro-Bot":
+    st.title("Hydro-Bot")
+    st.write("¡Hola! Bienvenido al chatbot 'Hydro-Bot'. Puedes consultar el estado de tu dispositivo HydroNex aquí.")
+    st.subheader("Temas sugeridos para preguntar:")
+    st.markdown("""
+    - **Estado del dispositivo**: "¿Cuál es el estado de llenado actual?"
+    - **Historial de llenado**: "¿Cuál es el historial de llenado del dispositivo?"
+    - **Litros acumulados**: "¿Cuántos litros hay acumulados?"
+    """)
 
-    # Exportar datos
-    export_data = pd.concat(sensor_data.values(), keys=sensor_data.keys(), names=["Sensor", "Index"]).reset_index()
-    st.download_button(
-        label="📥 Descargar datos calibrados (CSV)",
-        data=export_data.to_csv(index=False),
-        file_name="calibrated_data.csv",
-        mime="text/csv"
-    )
+    user_query = st.text_input("¿Qué te gustaría saber acerca de tu HydroNex?")
+    if user_query:
+        if "llenado" in user_query.lower():
+            st.write(f"Asistente: El dispositivo actualmente está en {st.session_state['estado de hydronex']}.")
+        elif "condición" in user_query.lower():
+            condicion = "óptimas" if st.session_state["condición de hydronex"] == "apto" else "malas"
+            st.write(f"Asistente: El dispositivo está en condiciones {condicion}.")
+        elif "historial" in user_query.lower():
+            st.write("Asistente: El historial de llenado es el siguiente:")
+            st.write(st.session_state["historial de Hydronex"])
+        else:
+            st.write("Asistente: Lo siento, no puedo responder esa pregunta. Intente preguntar sobre el estado, la condición o el historial del dispositivo.")
+
+# Monitoreo
+if choice == "Monitoreo":
+    st.title("Monitoreo del Agua en María del Triunfo")
+
+    # Calidad del agua
+    st.subheader("Calidad del Agua")
+    if not water_quality_data.empty:
+        st.write("Datos actuales de calidad del agua:")
+        st.dataframe(water_quality_data)
+
+        # Gráfica de pH y contaminantes
+        fig, ax1 = plt.subplots()
+        ax1.set_xlabel("Fecha")
+        ax1.set_ylabel("pH", color="blue")
+        ax1.plot(water_quality_data["Fecha"], water_quality_data["pH"], marker='o', color="blue", label="pH")
+        ax1.tick_params(axis="y", labelcolor="blue")
+
+        ax2 = ax1.twinx()
+        ax2.set_ylabel("Contaminantes (mg/L)", color="red")
+        ax2.plot(water_quality_data["Fecha"], water_quality_data["Contaminantes (mg/L)"], marker='o', color="red", label="Contaminantes")
+        ax2.tick_params(axis="y", labelcolor="red")
+
+        fig.tight_layout()
+        st.pyplot(fig)
+    else:
+        st.write("No hay datos disponibles sobre la calidad del agua.")
+
+    # Suministro de agua
+    st.subheader("Suministro de Agua")
+    if not water_supply_data.empty:
+        st.write("Datos actuales del suministro de agua:")
+        st.dataframe(water_supply_data)
+
+        # Gráfica de litros distribuidos
+        plt.figure(figsize=(10, 5))
+        plt.plot(water_supply_data["Fecha"], water_supply_data["Litros Distribuidos"], marker='o', color="green")
+        plt.title("Distribución de Agua en Litros")
+        plt.xlabel("Fecha")
+        plt.ylabel("Litros Distribuidos")
+        st.pyplot(plt)
+    else:
+        st.write("No hay datos disponibles sobre el suministro de agua.")
+
+# Reportes
+if choice == "Reportes":
+    st.title("Reportes de Problemas de Agua")
+    report_type = st.selectbox("Tipo de reporte", ["Contaminación", "Falta de suministro", "Otro"])
+    description = st.text_area("Descripción del problema")
+    if st.button("Enviar reporte"):
+        if description:
+            st.session_state["informes"].append((report_type, description))
+            st.success("Su reporte ha sido enviado.")
+        else:
+            st.error("Por favor, proporcione una descripción del problema.")
+
+    if st.session_state["informes"]:
+        st.subheader("Reportes enviados")
+        for report in st.session_state["informes"]:
+            st.write(f"- **{report[0]}**: {report[1]}")
+
+# Conciencia Comunitaria
+if choice == "Conciencia Comunitaria":
+    st.title("Conciencia del Agua")
+    st.subheader("Consejos para el Uso Eficiente del Agua")
+    st.write("""
+    - Reparar fugas en grifos y tuberías.
+    - Utilizar recipientes para regar las plantas.
+    - Tomar duchas breves.
+    - Recoger agua de lluvia para riego.
+    """)
+    st.subheader("Educación y Recursos")
+    st.write("""
+    - **Talleres de Conservación de Agua**: Aprende cómo conservar agua en tu hogar.
+    - **Sesiones Informativas**: Participa en sesiones para conocer más sobre la situación del agua en la comunidad.
+    """)
