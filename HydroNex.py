@@ -1,7 +1,6 @@
 import pandas as pd
 import streamlit as st
 import matplotlib.pyplot as plt
-from fuzzywuzzy import fuzz, process  # Biblioteca para coincidencia difusa de texto
 
 # Inicializar estado de sesión
 def init_session_state():
@@ -17,14 +16,6 @@ def init_session_state():
     for key, default in session_defaults.items():
         if key not in st.session_state:
             st.session_state[key] = default
-
-# Cargar datos desde una URL con manejo de errores
-def load_from_url(url):
-    try:
-        return pd.read_csv(url)
-    except Exception as e:
-        st.error(f"Error al cargar datos desde {url}: {e}")
-        return pd.DataFrame()
 
 # Configuración de la página
 st.set_page_config(page_title="HydroNex", page_icon="💧")
@@ -58,7 +49,15 @@ if choice == "Hydro-Bot":
     - **Litros acumulados**: "¿Cuántos litros hay acumulados?"
     """)
 
-    user_query = st.text_input("¿Qué te gustaría saber acerca de tu HydroNex?")
+    # Input del usuario
+    user_query = st.text_input("¿Qué te gustaría saber acerca de tu HydroNex?", key="user_query")
+    
+    # Botón para limpiar el chat
+    if st.button("Limpiar Chat"):
+        st.session_state["user_query"] = ""  # Resetea la entrada del usuario
+        st.write("Asistente: El chat ha sido limpiado. Puedes hacer una nueva consulta.")
+    
+    # Respuestas del bot
     if user_query:
         if "llenado" in user_query.lower():
             st.write(f"Asistente: El dispositivo actualmente está en {st.session_state['estado de hydronex']}.")
