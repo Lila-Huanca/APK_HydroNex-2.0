@@ -9,7 +9,7 @@ def init_session_state():
         "informes": [],
         "calidad del agua": [],
         "suministro de agua": [],
-        "estado de hydronex": "en proceso de llenado",  # Estado predeterminado
+        "estado de hydronex": "Esta desconectado",  # Estado predeterminado
         "condición de hydronex": "apto",              # Condición predeterminada
         "historial de Hydronex": [80, 90, 85, 100],   # Historial del estado de llenado
         "litros acumulados": 0,                       # Litros acumulados iniciales
