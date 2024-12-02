@@ -9,14 +9,22 @@ def init_session_state():
         "informes": [],
         "calidad del agua": [],
         "suministro de agua": [],
-        "estado de hydronex": "desconectado",  # Cambio a "desconectado"
-        "condición de hydronex": "desconocida",  # Cambio a "desconocida"
-        "historial de Hydronex": [],
+        "estado de hydronex": "en proceso de llenado",  # Estado predeterminado
+        "condición de hydronex": "apto",  # Condición predeterminada
+        "historial de Hydronex": [80, 90, 85, 100],  # Historial del estado de llenado
         "litros acumulados": 0,  # Litros acumulados iniciales
     }
     for key, default in session_defaults.items():
         if key not in st.session_state:
             st.session_state[key] = default
+
+# Load data with error handling
+def load_from_url(url):
+    try:
+        return pd.read_csv(url)
+    except Exception as e:
+        st.error(f"Error al cargar datos desde {url}: {e}")
+        return pd.DataFrame()
 
 # Configure the page
 st.set_page_config(page_title="HydroNex", page_icon="💧")
@@ -55,31 +63,27 @@ if Choice == "Hydro-Bot":
     user_query = st.text_input("¿Qué te gustaría saber acerca de tu HydroNex?")
     
     if user_query:
-        # Verificar el estado de conexión
-        if st.session_state["estado de hydronex"] == "desconectado":
-            st.write("Asistente: El dispositivo está desconectado. No puedo proporcionar información en este momento.")
-        else:
-            # Si el dispositivo está conectado, procesar las consultas como antes
-            if "llenado" in user_query.lower():
-                st.write(f"Asistente: El dispositivo actualmente está en {st.session_state['estado de hydronex']}.")
-                # Simulate filling state change
-                estados_llenado = ["en proceso de llenado", "a la mitad de la capacidad", "completamente lleno"]
-                estado_actual = estados_llenado.index(st.session_state["estado de hydronex"])
-                st.session_state["estado de hydronex"] = estados_llenado[(estado_actual + 1) % len(estados_llenado)]
-            elif "condición" in user_query.lower():
-                condicion = "óptimas" if st.session_state["condición de hydronex"] == "apto" else "malas"
-                st.write(f"Asistente: El dispositivo está en condiciones {condicion}.")
-            elif "historial" in user_query.lower():
-                st.write("Asistente: El historial de llenado es el siguiente:")
-                st.write(st.session_state["historial de Hydronex"])
-            elif "litros acumulados" in user_query.lower():
-                if st.session_state["litros acumulados"] == 0:
-                    st.write("Asistente: Actualmente no tenemos litros acumulados. Por favor, espera un momento y vuelve a preguntar.")
-                    st.session_state["litros acumulados"] = 150  # Simulate accumulation
-                else:
-                    st.write(f"Asistente: El dispositivo tiene {st.session_state['litros acumulados']} litros acumulados.")
+        # Check the device status based on user input
+        if "llenado" in user_query.lower():
+            st.write(f"Asistente: El dispositivo actualmente está en {st.session_state['estado de hydronex']}.")
+            # Simulate filling state change
+            estados_llenado = ["en proceso de llenado", "a la mitad de la capacidad", "completamente lleno"]
+            estado_actual = estados_llenado.index(st.session_state["estado de hydronex"])
+            st.session_state["estado de hydronex"] = estados_llenado[(estado_actual + 1) % len(estados_llenado)]
+        elif "condición" in user_query.lower():
+            condicion = "óptimas" if st.session_state["condición de hydronex"] == "apto" else "malas"
+            st.write(f"Asistente: El dispositivo está en condiciones {condicion}.")
+        elif "historial" in user_query.lower():
+            st.write("Asistente: El historial de llenado es el siguiente:")
+            st.write(st.session_state["historial de Hydronex"])
+        elif "litros acumulados" in user_query.lower():
+            if st.session_state["litros acumulados"] == 0:
+                st.write("Asistente: Actualmente no tenemos litros acumulados. Por favor, espera un momento y vuelve a preguntar.")
+                st.session_state["litros acumulados"] = 150  # Simulate accumulation
             else:
-                st.write("Asistente: Lo siento, no puedo responder esa pregunta. Intente preguntar sobre el estado, la condición o el historial del dispositivo.")
+                st.write(f"Asistente: El dispositivo tiene {st.session_state['litros acumulados']} litros acumulados.")
+        else:
+            st.write("Asistente: Lo siento, no puedo responder esa pregunta. Intente preguntar sobre el estado, la condición o el historial del dispositivo.")
 
 # Water Monitoring
 elif Choice == "Monitoreo":
